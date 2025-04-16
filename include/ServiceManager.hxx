@@ -4,6 +4,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <RoomsManager.hxx>
 #include <memory>
 
 #define STANDARD_PORT 38532
@@ -22,6 +23,9 @@ class ServiceManager : public std::enable_shared_from_this<ServiceManager>
 
 	// acceptor for accepting new clients.
 	tcp::acceptor acceptor_;
+
+	// rooms manager for management of rooms.
+	RoomsManager roomsManager_;
 public:
 	// constructor
 	ServiceManager(asio::io_context& io, asio::ip::port_type port = STANDARD_PORT);
