@@ -2,12 +2,16 @@
 #define CLIENT_HXX
 
 #include <boost/beast/core.hpp>
+#include <boost/asio.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/io_context.hpp>
 #include <nlohmann/json.hpp>
 #include <functional>
 #include <string>
 #include <memory>
+#include <queue>
+#include <mutex>
 
 namespace beast		= boost::beast;
 namespace websocket	= beast::websocket;
@@ -15,8 +19,14 @@ namespace asio		= boost::asio;
 using tcp		= boost::asio::ip::tcp;
 using json		= nlohmann::json;
 
+// declaration of Room class for pointer.
+class Room;
+
 class Client : public std::enable_shared_from_this<Client>
 {
+	// ID.
+	int ID_;
+
 	// websocket for client-server communication.
 	websocket::stream<tcp::socket> ws_;
 
@@ -25,11 +35,23 @@ class Client : public std::enable_shared_from_this<Client>
 
 	// username of user.
 	std::string username_;
+
+	// room where client plays. nullptr - if client isn't playing.
+	std::shared_ptr<Room> room_;
+
+	// queue of messages for correct sending.
+	std::queue<std::string> messagesQueue_;
+
+	// flag, if writing is occuring.
+	std::atomic<bool> isWriting;
+
+	// send data from messagesQueue_.
+	void _start_data_sending_();
 public:
 	// constructor.
 	Client(tcp::socket);
 
-	// send data to client.
+	// it pushs data to messagesQueue_.
 	void send_data(const std::string& data);
 
 	// start handling of client.
@@ -38,6 +60,17 @@ public:
 	// main logic of data exchange between server and client.
 	void input_output_handling(std::function<void(std::shared_ptr<json>)> callback);
 
+	// set room for handling game process.
+	void set_room(std::shared_ptr<Room> room);
+
+	// return current client's room.
+	std::shared_ptr<Room> get_room() const;
+
+	// getter and setter for ID_.
+	void set_ID(int id);
+	int  get_ID() const;
+
+	// getter and setter for username_ field.
 	void set_username(const std::string& username);
 	std::string get_username() const;
 };
