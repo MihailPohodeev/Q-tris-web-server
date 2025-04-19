@@ -29,7 +29,9 @@ void ServiceManager::accept_client()
 				json response;
 				try
 				{
-					std::cout << request->dump() << '\n';	
+#ifdef DEBUG_MODE
+					std::cout << "INCOMING REQUEST : " << request->dump() << '\n';
+#endif
 
 					std::string command = request->at("command");
 
@@ -49,8 +51,10 @@ void ServiceManager::accept_client()
 						{
 							std::shared_ptr<Room> room_ptr = self->roomsManager_.create_room(client_ptr, request->at("room_name"), rp);
 							client_ptr->set_room(room_ptr);
-							response["status"] = "success";
+							room_ptr->start_handle_room();
+							response["status"] 	= "success";
 						}
+						client_ptr->send_data( response.dump() );
 					}
 					else if (command == "get_rooms_list")
 					{
@@ -58,38 +62,61 @@ void ServiceManager::accept_client()
 						std::shared_ptr<json> rooms = self->roomsManager_.get_rooms_as_json();
 						response["status"] = "success";
 						response["body"]   = *rooms;
+						client_ptr->send_data( response.dump() );
 					}
 					else if (command == "set_username")
 					{
 						response["command"] = "set_username_response";
 						client_ptr->set_username( request->at("username") );
 						response["status"]  = "success";
+						client_ptr->send_data( response.dump() );
 					}
 					else if (command == "connect_to_room")
 					{
 						response["command"] = "connect_to_room_response";
 						std::shared_ptr<Room> room_ptr = self->roomsManager_.connect_user_to_room( client_ptr, request->at("room_id") );
 						client_ptr->set_room(room_ptr);
-						room_ptr->notify_all( room_ptr->get_clients_info() );
-						response["status"]  = ( room_ptr.get() ? "success" : "fail" );
+						response["status"]	= ( room_ptr.get() ? "success" : "fail" );
+						client_ptr->send_data( response.dump() );
 					}
 					else if (command == "get_room_clients_info")
 					{
-						response["command"] = "room_clients_info";
-						std::shared_ptr<json> clientsDataJSON_ptr = client_ptr->get_room()->get_clients_info();
-						response["clients"] = *clientsDataJSON_ptr;
-						response["status"] = "success";
+						std::shared_ptr<json> clientsInfo 		= std::make_shared<json>();
+						(*clientsInfo)["command"]			= "room_clients_info_response";
+						std::shared_ptr<json> clientsDataJSON_ptr	= client_ptr->get_room()->get_clients_info();
+						(*clientsInfo)["clients"]			= *clientsDataJSON_ptr;
+						(*clientsInfo)["status"]			= "success";
+						std::shared_ptr<Room> room_ptr 			= client_ptr->get_room();
+						if ( room_ptr.get() )
+						{
+							room_ptr->notify_all(clientsInfo);
+						}
 					}
 					else if (command == "disconnect")
 					{
 						response["command"] = "disconnect_response";
 						std::shared_ptr<Room> room_ptr = client_ptr->get_room();
 						room_ptr->disconnect_client(client_ptr);
+						std::shared_ptr<json> newListOfClients = std::make_shared<json>();
+						(*newListOfClients)["command"] = "room_clients_info_response";
+						(*newListOfClients)["clients"] = *( room_ptr->get_clients_info() );
+						(*newListOfClients)["status"]  = "success";
+						room_ptr->notify_all(newListOfClients);
 						client_ptr->set_room(nullptr);
 						response["status"]  = "success";
+						client_ptr->send_data( response.dump() );
 					}
-
-					client_ptr->send_data( response.dump() );
+					else if (command == "set_ready_value")
+					{
+						response["command"] = "set_ready_value_response";
+						std::shared_ptr<Room> room_ptr = client_ptr->get_room();
+						bool result = room_ptr->set_client_ready_flag( client_ptr, request->at("ready_value") );
+						if (result)
+							response["status"] = "success";
+						else
+							response["status"] = "fail";
+						client_ptr->send_data( response.dump() );
+					}
 				}
 				catch (const json::type_error& e)
 				{

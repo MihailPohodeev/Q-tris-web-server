@@ -40,11 +40,12 @@ std::shared_ptr<json> RoomsManager::get_rooms_as_json() const
 		for (auto it = waitingRooms_.begin(); it != waitingRooms_.end(); it++)
 		{
 			json elem;
-			elem["room_name"] 	= it->second->get_room_name();
-			elem["room_id"]		= it->second->get_id();
-			elem["queue_mode"]	= ( it->second->get_queue_mode() == QueueMode::Different ? "different" : "same" );
-			elem["players_count"]	= it->second->get_players_count();
-			elem["start_level"]	= it->second->get_start_level();
+			elem["room_name"] 		= it->second->get_room_name();
+			elem["room_id"]			= it->second->get_id();
+			elem["queue_mode"]		= ( it->second->get_queue_mode() == QueueMode::Different ? "different" : "same" );
+			elem["players_count"]		= it->second->real_players_count();
+			elem["players_capacity"]	= it->second->get_players_count();
+			elem["start_level"]		= it->second->get_start_level();
 			result->push_back(elem);
 		}
 	}

@@ -22,7 +22,11 @@ void Client::_start_data_sending_()
 		return;
 
 	isWriting = true;
+
+#ifdef DEBUG_MODE
 	std::cout << "SENDING DATA : " << messagesQueue_.front() << '\n';
+#endif
+
 	ws_.async_write(asio::buffer( messagesQueue_.front() ), [self = shared_from_this()](beast::error_code ec, size_t bytes_send)
 		{
 			if (ec)
@@ -67,7 +71,7 @@ void Client::input_output_handling(std::function<void(std::shared_ptr<json>)> ca
 			{
 				room_ptr->disconnect_client(self);
 				std::shared_ptr<json> newListOfClients = std::make_shared<json>();
-				(*newListOfClients)["command"] = "room_clients_info";
+				(*newListOfClients)["command"] = "room_clients_info_response";
 				(*newListOfClients)["clients"] = *( room_ptr->get_clients_info() );
 				(*newListOfClients)["status"]  = "success";
 				room_ptr->notify_all(newListOfClients);
@@ -106,17 +110,6 @@ std::shared_ptr<Room> Client::get_room() const
 	return room_;
 }
 
-// setter for ID_.
-void Client::set_ID(int id)
-{
-	ID_ = id;
-}
-
-int Client::get_ID() const
-{
-	return ID_;
-}
-
 void Client::set_username(const std::string& username)
 {
 	username_ = username;
@@ -125,4 +118,14 @@ void Client::set_username(const std::string& username)
 std::string Client::get_username() const
 {
 	return username_;
+}
+
+int Client::get_id()
+{
+	if ( room_.get() )
+	{
+		return room_->get_client_position_in_list( shared_from_this() );
+	}
+	else
+		return -1;
 }

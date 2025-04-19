@@ -24,9 +24,6 @@ class Room;
 
 class Client : public std::enable_shared_from_this<Client>
 {
-	// ID.
-	int ID_;
-
 	// websocket for client-server communication.
 	websocket::stream<tcp::socket> ws_;
 
@@ -66,13 +63,12 @@ public:
 	// return current client's room.
 	std::shared_ptr<Room> get_room() const;
 
-	// getter and setter for ID_.
-	void set_ID(int id);
-	int  get_ID() const;
-
 	// getter and setter for username_ field.
 	void set_username(const std::string& username);
 	std::string get_username() const;
+
+	// get client's id in room.
+	int get_id();
 };
 
 #endif
