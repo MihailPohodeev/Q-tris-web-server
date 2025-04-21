@@ -41,12 +41,21 @@ class Room : public std::enable_shared_from_this<Room>
 
 	// handle waiting or game process flag.
 	bool isGameProcessOccuringFlag_;
+
+	// JSON with data for clients.
+	json intermediateJSON_ExchangeFrame_;
+
+	// mutex for guarding exchange frame.
+	mutable std::mutex exchangeFrameMutex_;
 public:
 	// handle room's game process.
 	void start_handle_room();
 	
 	// constructor.
 	Room(const std::string& roomName, unsigned int id, const RoomParams& roomParams);
+
+	// add JSON data frame for exchanging.
+	void add_package(std::shared_ptr<Client> client_ptr, std::shared_ptr<json> data);
 
 	// connect client to the room.
 	void connect_client(std::shared_ptr<Client> client_ptr);

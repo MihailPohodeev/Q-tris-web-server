@@ -117,6 +117,17 @@ void ServiceManager::accept_client()
 							response["status"] = "fail";
 						client_ptr->send_data( response.dump() );
 					}
+					else if (command == "data_frame")
+					{
+						std::shared_ptr<Room> room_ptr = client_ptr->get_room();
+						if ( room_ptr.get() )
+						{
+							std::shared_ptr<json> clientDataFrame = std::make_shared<json>();
+							(*clientDataFrame)["content"]	= request->at("content");
+							(*clientDataFrame)["figure"]	= request->at("figure");
+							room_ptr->add_package(client_ptr, clientDataFrame);
+						}
+					}
 				}
 				catch (const json::type_error& e)
 				{

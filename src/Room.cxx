@@ -17,34 +17,63 @@ Room::Room(const std::string& roomName, unsigned int id, const RoomParams& roomP
 // handle room's game process.
 void Room::start_handle_room()
 {
-	timer_.expires_after( std::chrono::seconds(1) );
+	timer_.expires_after( std::chrono::milliseconds(100) );
 	timer_.async_wait([self = shared_from_this()](const auto& ec)
 		{
 			if (!ec)
 			{
 				if (self->isGameProcessOccuringFlag_)
 				{
-					std::cout << "Game started!\n";
+					std::lock_guard<std::mutex> lock(self->exchangeFrameMutex_);
+					std::shared_ptr<json> dataFrame = std::make_shared<json>();
+					(*dataFrame)["command"] = "data_frame";
+					(*dataFrame)["content"] = self->intermediateJSON_ExchangeFrame_;
+					self->intermediateJSON_ExchangeFrame_.clear();
+
+					self->notify_all(dataFrame);
 				}
 				else
 				{
-					std::lock_guard<std::mutex> lock(self->clientsMutex_);
 					bool canStartGame = true;
-					for (auto it = self->readyClients_.begin(); it != self->readyClients_.end(); it++)
 					{
-						if ( !(*it) )
+						std::lock_guard<std::mutex> lock(self->clientsMutex_);
+						for (auto it = self->readyClients_.begin(); it != self->readyClients_.end(); it++)
 						{
-							canStartGame = false;
-							break;
+							if ( !(*it) )
+							{
+								canStartGame = false;
+								break;
+							}
 						}
 					}
 					if (canStartGame)
-						self->isGameProcessOccuringFlag_ = true;
+					{
+						self->isGameProcessOccuringFlag_			= true;
+						std::shared_ptr<json> gameStartNotificationJSON 	= std::make_shared<json>();
+						(*gameStartNotificationJSON)["command"]			= "can_start_game";
+
+						json roomParams;
+						roomParams["room_name"] 				= self->roomName_;
+						roomParams["players_count"]				= self->roomParams_.playersCount;
+						roomParams["start_level"]				= self->roomParams_.startLevel;
+						(*gameStartNotificationJSON)["room_parameters"]		= roomParams;
+
+						self->notify_all(gameStartNotificationJSON);
+					}
 				}
 			}
 
 			self->start_handle_room();
 		});
+}
+
+// add JSON data frame for exchanging.
+void Room::add_package(std::shared_ptr<Client> client_ptr, std::shared_ptr<json> data)
+{
+	std::lock_guard<std::mutex> lock(exchangeFrameMutex_);
+	int id = _get_client_position_in_list_(client_ptr);
+	std::string clientID = "client_" + std::to_string(id);
+	intermediateJSON_ExchangeFrame_[clientID] = *data;
 }
 
 // connect client to the room.
