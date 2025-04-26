@@ -117,14 +117,28 @@ void ServiceManager::accept_client()
 							response["status"] = "fail";
 						client_ptr->send_data( response.dump() );
 					}
+					else if (command == "get_room_settings")
+					{
+						std::shared_ptr<Room> room_ptr 		= client_ptr->get_room();
+						if ( !room_ptr.get() )
+							return;
+						json response;
+						response["command"]			= "get_room_settings_response";
+						std::shared_ptr<json> clientsInfo 	= room_ptr->get_clients_info();
+						response["clients"]			= *clientsInfo;
+
+						json paramsJSON;
+						paramsJSON["start_level"]		= room_ptr->get_start_level();
+						response["params"]			= paramsJSON;
+						client_ptr->send_data( response.dump() );
+					}
 					else if (command == "data_frame")
 					{
 						std::shared_ptr<Room> room_ptr = client_ptr->get_room();
 						if ( room_ptr.get() )
 						{
 							std::shared_ptr<json> clientDataFrame = std::make_shared<json>();
-							(*clientDataFrame)["content"]	= request->at("content");
-							(*clientDataFrame)["figure"]	= request->at("figure");
+							(*clientDataFrame)["body"]	= request->at("body");
 							room_ptr->add_package(client_ptr, clientDataFrame);
 						}
 					}

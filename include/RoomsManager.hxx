@@ -37,7 +37,7 @@ public:
 	std::shared_ptr<Room> connect_user_to_room( std::shared_ptr<Client> client_ptr, unsigned int roomID );
 
 	// get rooms with all parameters.
-	std::shared_ptr<json> get_rooms_as_json() const;
+	std::shared_ptr<json> get_rooms_as_json();
 };
 
 #endif

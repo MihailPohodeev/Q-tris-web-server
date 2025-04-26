@@ -30,7 +30,8 @@ void Room::start_handle_room()
 					(*dataFrame)["content"] = self->intermediateJSON_ExchangeFrame_;
 					self->intermediateJSON_ExchangeFrame_.clear();
 
-					self->notify_all(dataFrame);
+					if ( (*dataFrame)["content"].size() > 0 )
+						self->notify_all(dataFrame);
 				}
 				else
 				{

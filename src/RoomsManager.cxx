@@ -30,15 +30,21 @@ std::shared_ptr<Room> RoomsManager::connect_user_to_room( std::shared_ptr<Client
 }
 
 // get rooms with all parameters.
-std::shared_ptr<json> RoomsManager::get_rooms_as_json() const
+std::shared_ptr<json> RoomsManager::get_rooms_as_json()
 {
 	std::shared_ptr<json> result = std::make_shared<json>();
 	*result = json::array();
 
 	{
 		std::lock_guard<std::mutex> lock(waitingRoomsMutex_);
-		for (auto it = waitingRooms_.begin(); it != waitingRooms_.end(); it++)
+		for (auto it = waitingRooms_.begin(); it != waitingRooms_.end(); )
 		{
+			if ( it->second->real_players_count() == 0 )
+			{
+				it = waitingRooms_.erase(it);
+				continue;
+			}
+
 			json elem;
 			elem["room_name"] 		= it->second->get_room_name();
 			elem["room_id"]			= it->second->get_id();
@@ -47,6 +53,7 @@ std::shared_ptr<json> RoomsManager::get_rooms_as_json() const
 			elem["players_capacity"]	= it->second->get_players_count();
 			elem["start_level"]		= it->second->get_start_level();
 			result->push_back(elem);
+			++it;
 		}
 	}
 
