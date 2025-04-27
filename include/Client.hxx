@@ -42,6 +42,9 @@ class Client : public std::enable_shared_from_this<Client>
 	// flag, if writing is occuring.
 	std::atomic<bool> isWriting;
 
+	// flag, if client is loose.
+	std::atomic<bool> isLoose;
+
 	// send data from messagesQueue_.
 	void _start_data_sending_();
 public:
@@ -66,6 +69,10 @@ public:
 	// getter and setter for username_ field.
 	void set_username(const std::string& username);
 	std::string get_username() const;
+
+	// set loose-value.
+	void set_loose_value(bool value);
+	bool is_loose() const;
 
 	// get client's id in room.
 	int get_id();

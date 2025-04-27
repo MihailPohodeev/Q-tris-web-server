@@ -6,7 +6,7 @@
 
 using json = nlohmann::json;
 
-Client::Client(tcp::socket socket) : ws_(std::move(socket)), isWriting(false) {}
+Client::Client(tcp::socket socket) : ws_(std::move(socket)), isWriting(false), isLoose(false) {}
 
 // send data to client.
 void Client::send_data(const std::string& data)
@@ -128,4 +128,14 @@ int Client::get_id()
 	}
 	else
 		return -1;
+}
+
+void Client::set_loose_value(bool value)
+{
+	isLoose = value;
+}
+
+bool Client::is_loose() const
+{
+	return isLoose;
 }

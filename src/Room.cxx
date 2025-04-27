@@ -24,6 +24,26 @@ void Room::start_handle_room()
 			{
 				if (self->isGameProcessOccuringFlag_)
 				{
+					bool endGame = true;
+					
+					{
+						std::lock_guard<std::mutex> lock(self->clientsMutex_);
+						for (auto it = self->clients_.begin(); it != self->clients_.end(); ++it)
+						{
+							if ( !(*it)->is_loose() )
+							{
+								endGame = false;
+								break;
+							}
+						}
+					}
+
+					if ( endGame )
+					{
+						std::shared_ptr<json> endGameJSON = std::make_shared<json>();
+						(*endGameJSON)["command"] = "end_game";
+						self->notify_all(endGameJSON);
+					}
 					std::lock_guard<std::mutex> lock(self->exchangeFrameMutex_);
 					std::shared_ptr<json> dataFrame = std::make_shared<json>();
 					(*dataFrame)["command"] = "data_frame";

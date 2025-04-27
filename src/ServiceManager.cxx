@@ -132,6 +132,11 @@ void ServiceManager::accept_client()
 						response["params"]			= paramsJSON;
 						client_ptr->send_data( response.dump() );
 					}
+					else if (command == "loose")
+					{
+						std::cout << "LOOSE!\n";
+						client_ptr->set_loose_value(true);
+					}
 					else if (command == "data_frame")
 					{
 						std::shared_ptr<Room> room_ptr = client_ptr->get_room();
