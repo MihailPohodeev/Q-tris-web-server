@@ -14,6 +14,11 @@ Room::Room(const std::string& roomName, unsigned int id, const RoomParams& roomP
 											 isGameProcessOccuringFlag_(false),
 											 timer_(io) {}
 
+void Room::_destroy_room_()
+{
+
+}
+
 // handle room's game process.
 void Room::start_handle_room()
 {
@@ -42,7 +47,22 @@ void Room::start_handle_room()
 					{
 						std::shared_ptr<json> endGameJSON = std::make_shared<json>();
 						(*endGameJSON)["command"] = "end_game";
+						{
+							std::lock_guard<std::mutex> lock(self->clientsMutex_);
+							(*endGameJSON)["players"] = json::array();
+							for (auto it = self->clients_.begin(); it != self->clients_.end(); ++it)
+							{
+								json client;
+								client["username"] 	= (*it)->get_username();
+								client["score"]		= (*it)->get_score();
+								client["lines"]		= (*it)->get_lines();
+								client["level"]		= (*it)->get_level();
+								(*endGameJSON)["players"].push_back(client);
+							}
+						}
 						self->notify_all(endGameJSON);
+						self->_destroy_room_();
+						return;
 					}
 					std::lock_guard<std::mutex> lock(self->exchangeFrameMutex_);
 					std::shared_ptr<json> dataFrame = std::make_shared<json>();

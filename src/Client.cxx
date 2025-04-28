@@ -139,3 +139,33 @@ bool Client::is_loose() const
 {
 	return isLoose;
 }
+
+void Client::set_score(unsigned int score)
+{
+	score_ = score;
+}
+
+unsigned int Client::get_score() const
+{
+	return score_;
+}
+
+void Client::set_lines(unsigned int lines)
+{
+	lines_ = lines;
+}
+
+unsigned int Client::get_lines() const
+{
+	return lines_;
+}
+
+void Client::set_level(unsigned int level)
+{
+	level_ = level;
+}
+
+unsigned int Client::get_level() const
+{
+	return level_;
+}

@@ -47,6 +47,14 @@ class Client : public std::enable_shared_from_this<Client>
 
 	// send data from messagesQueue_.
 	void _start_data_sending_();
+
+	// score.
+	unsigned int score_;
+	// lines.
+	unsigned int lines_;
+	// level.
+	unsigned int level_;
+
 public:
 	// constructor.
 	Client(tcp::socket);
@@ -76,6 +84,15 @@ public:
 
 	// get client's id in room.
 	int get_id();
+
+	void set_score(unsigned int score);
+	unsigned int get_score() const;
+
+	void set_lines(unsigned int lines);
+	unsigned int get_lines() const;
+
+	void set_level(unsigned int level);
+	unsigned int get_level() const;
 };
 
 #endif

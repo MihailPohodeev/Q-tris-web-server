@@ -134,7 +134,6 @@ void ServiceManager::accept_client()
 					}
 					else if (command == "loose")
 					{
-						std::cout << "LOOSE!\n";
 						client_ptr->set_loose_value(true);
 					}
 					else if (command == "data_frame")
@@ -144,6 +143,9 @@ void ServiceManager::accept_client()
 						{
 							std::shared_ptr<json> clientDataFrame = std::make_shared<json>();
 							(*clientDataFrame)["body"]	= request->at("body");
+							client_ptr->set_score( clientDataFrame->at("body").at("score") );
+							client_ptr->set_lines( clientDataFrame->at("body").at("lines") );
+							client_ptr->set_level( clientDataFrame->at("body").at("level") );
 							room_ptr->add_package(client_ptr, clientDataFrame);
 						}
 					}

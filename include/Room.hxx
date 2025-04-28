@@ -47,6 +47,9 @@ class Room : public std::enable_shared_from_this<Room>
 
 	// mutex for guarding exchange frame.
 	mutable std::mutex exchangeFrameMutex_;
+
+	// destroy this room.
+	void _destroy_room_();
 public:
 	// handle room's game process.
 	void start_handle_room();
